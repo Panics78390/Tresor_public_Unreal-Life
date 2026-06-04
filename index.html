@@ -48,28 +48,69 @@ button{padding:10px 15px;background:#2563eb;color:white;border:none;border-radiu
 <button onclick="addCompany()">Ajouter une entreprise</button>
 </div>
 
-<script>
-const companies=[
-["Autosphere","2145000 €","428250 €","À jour"],
-["Garage Nolaws","1532000 €","306400 €","À jour"],
-["Oil Industrie","1248000 €","249600 €","À jour"]
-];
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-function render(){
- const body=document.getElementById("tbody");
- body.innerHTML="";
- companies.forEach(c=>{
-  body.innerHTML+=`<tr><td>${c[0]}</td><td>${c[1]}</td><td>${c[2]}</td><td>${c[3]}</td></tr>`;
- });
+<script>
+const supabaseUrl = "https://wocgcgotngufjxdsozkl.supabase.co";
+const supabaseKey = "TA_CLE_PUBLISHABLE_ICI";
+
+const supabase = window.supabase.createClient(
+  supabaseUrl,
+  supabaseKey
+);
+
+async function loadCompanies() {
+  const { data, error } = await supabase
+    .from('entreprises')
+    .select('*')
+    .order('id');
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  const body = document.getElementById("tbody");
+  body.innerHTML = "";
+
+  data.forEach(c => {
+    body.innerHTML += `
+      <tr>
+        <td>${c.nom}</td>
+        <td>${c.benefice} €</td>
+        <td>${c.taxes} €</td>
+        <td>${c.statut}</td>
+      </tr>
+    `;
+  });
 }
-function addCompany(){
- const name=prompt("Nom entreprise");
- if(name){
-   companies.push([name,"0 €","0 €","En attente"]);
-   render();
- }
+
+async function addCompany() {
+  const name = prompt("Nom entreprise");
+
+  if (!name) return;
+
+  const { error } = await supabase
+    .from('entreprises')
+    .insert({
+      nom: name,
+      chiffre_affaires: 0,
+      charges: 0,
+      benefice: 0,
+      taxes: 0,
+      statut: 'En attente'
+    });
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  loadCompanies();
 }
-render();
+
+loadCompanies();
 </script>
+ 
 </body>
 </html>
